@@ -1,0 +1,19 @@
+services:
+  reasm:
+    build: .
+    container_name: pcap-reasm
+    ports:
+      - "8000:8000"
+    environment:
+      # 预期字节数上限
+      MAX_EXPECTED_BYTES: "16777216"
+      # 所有分片合计字节数上限
+      MAX_TOTAL_BYTES: "16777216"
+      # 分片数量上限
+      MAX_FRAGMENTS: "2000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3).status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

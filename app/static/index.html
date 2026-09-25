@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>单向抓包负载重组</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>单向抓包负载重组</h1>
+    <p class="subtitle">按字节偏移重组乱序分片 · 重叠同值去重 · 异值标出冲突 · 列出全部缺口</p>
+  </header>
+
+  <main>
+    <!-- 输入区 -->
+    <section class="card">
+      <div class="row">
+        <label class="field expected-field">
+          <span>预期字节数</span>
+          <input type="number" id="expectedLength" min="0" step="1" value="16" />
+        </label>
+        <div class="actions">
+          <button id="btnAdd" type="button" class="btn">＋ 添加分片</button>
+          <button id="btnDemo" type="button" class="btn btn-ghost">填充示例</button>
+          <button id="btnClear" type="button" class="btn btn-ghost">清空</button>
+          <button id="btnRun" type="button" class="btn btn-primary">重组</button>
+        </div>
+      </div>
+      <div id="fragments" class="fragments"></div>
+      <p class="hint">
+        十六进制内容可含空格、冒号、<code>0x</code> 前缀;偏移从 0 开始,超出预期长度的尾部会被标记为溢出。
+      </p>
+    </section>
+
+    <!-- 状态条 -->
+    <section id="banner" class="banner hidden"></section>
+
+    <!-- 结果区 -->
+    <section id="results" class="hidden">
+      <div class="card">
+        <div class="result-head">
+          <h2>覆盖图(按字节偏移)</h2>
+          <div class="legend">
+            <span class="lg lg-clean">正常覆盖</span>
+            <span class="lg lg-conflict">冲突</span>
+            <span class="lg lg-gap">缺口</span>
+            <span class="lg lg-overflow">溢出</span>
+          </div>
+        </div>
+        <canvas id="map"></canvas>
+        <div id="mapTip" class="maptip hidden"></div>
+        <div class="stat-chips">
+          <span class="chip">分片 <b id="stFragments">0</b></span>
+          <span class="chip">已覆盖 <b id="stCovered">0</b> 字节</span>
+          <span class="chip chip-clean">无冲突 <b id="stClean">0</b> 字节</span>
+          <span class="chip chip-conflict">冲突 <b id="stConflict">0</b> 字节</span>
+          <span class="chip chip-gap">缺口 <b id="stGap">0</b> 字节</span>
+          <span class="chip">覆盖率 <b id="stPercent">0%</b></span>
+          <button id="btnDownload" type="button" class="btn btn-primary" disabled>
+            下载还原二进制
+          </button>
+        </div>
+        <p class="hint" style="margin-top:8px;">
+          下载内容来自最近一次成功重组的输入;修改分片后请重新点击「重组」。
+        </p>
+      </div>
+
+      <div class="grid-sections">
+        <div class="card range-card">
+          <h3 class="rc-clean">正常覆盖区间</h3>
+          <div id="listCovered" class="range-list"></div>
+        </div>
+        <div class="card range-card">
+          <h3 class="rc-conflict">冲突区间(重叠且取值不同)</h3>
+          <div id="listConflict" class="range-list"></div>
+        </div>
+        <div class="card range-card">
+          <h3 class="rc-gap">缺口区间 [0, 预期长度)</h3>
+          <div id="listGap" class="range-list"></div>
+        </div>
+        <div class="card range-card">
+          <h3 class="rc-overflow">溢出区间(≥ 预期长度)</h3>
+          <div id="listOverflow" class="range-list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <template id="fragTpl">
+    <div class="fragment">
+      <span class="frag-idx"></span>
+      <input class="frag-label" type="text" placeholder="名称(可选)" />
+      <input class="frag-offset" type="number" min="0" step="1" placeholder="起始偏移" />
+      <textarea class="frag-hex" rows="1" placeholder="十六进制内容,如 48 65 6c 6c 6f"></textarea>
+      <button type="button" class="btn btn-danger frag-del" title="删除">✕</button>
+    </div>
+  </template>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
